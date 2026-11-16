@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: batch-banco-para-nosql
+  config:
+    import: optional:file:.env[.properties]
+  data:
+    mongodb:
+      # Banco de destino (NoSQL)
+      uri: mongodb://${DB_DESTINO_USER}:${DB_DESTINO_PASSWORD}@${DB_DESTINO_HOST:localhost:27017}/destino?authSource=admin
+  batch:
+    jdbc:
+      # As tabelas de controle do Spring Batch ficam em um H2 em memória.
+      initialize-schema: always
+
+migracao:
+  tamanho-chunk: 100
+  origem:
+    # Banco de origem (relacional)
+    url: ${DB_ORIGEM_URL}
+    usuario: ${DB_ORIGEM_USER}
+    senha: ${DB_ORIGEM_PASSWORD}

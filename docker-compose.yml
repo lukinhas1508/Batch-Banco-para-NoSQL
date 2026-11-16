@@ -1,0 +1,43 @@
+# Sobe os dois bancos usados pela migração: PostgreSQL (origem) e MongoDB (destino).
+# Os scripts em src/main/resources/db/** criam a tabela com os dados da origem e a
+# coleção de destino automaticamente na primeira inicialização de cada container.
+services:
+  banco-origem:
+    image: postgres:17-alpine
+    container_name: banco-origem
+    environment:
+      POSTGRES_DB: origem
+      POSTGRES_USER: ${DB_ORIGEM_USER}
+      POSTGRES_PASSWORD: ${DB_ORIGEM_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./src/main/resources/db/origem:/docker-entrypoint-initdb.d:ro
+      - dados-origem:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ORIGEM_USER} -d origem"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  banco-destino:
+    image: mongo:8.0
+    container_name: banco-destino
+    environment:
+      MONGO_INITDB_DATABASE: destino
+      MONGO_INITDB_ROOT_USERNAME: ${DB_DESTINO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_DESTINO_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./src/main/resources/db/destino:/docker-entrypoint-initdb.d:ro
+      - dados-destino:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  dados-origem:
+  dados-destino:
